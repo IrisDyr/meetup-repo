@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    ports:
+      - "3200:3200"  # Tempo UI and API
+    command: [ "-config.file=/etc/tempo/tempo.yml" ]
+    volumes:
+      - ./tempo/tempo.yml:/etc/tempo/tempo.yml
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
+    ports:
+      - "4317:4317"  # OTLP gRPC endpoint
+      - "55681:55681"  # OTLP HTTP endpoint
+    volumes:
+      - ./otel-config.yaml:/etc/otel-config.yaml
+    command:
+      - "--config=/etc/otel-config.yaml"
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"  # Grafana UI
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - tempo
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+volumes:
+  grafana-storage:
