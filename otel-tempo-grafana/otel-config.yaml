@@ -1,0 +1,27 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4318"  # gRPC endpoint
+      http:
+        endpoint: "0.0.0.0:4317"  # HTTP endpoint
+
+exporters:
+  otlphttp:
+    endpoint: "http://tempo:4318"
+  otlp:
+    endpoint: "tempo:9095"
+    tls:
+      insecure: true
+  debug:
+    verbosity: detailed
+
+processors:
+  batch: {}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlphttp]
